@@ -1,8 +1,3 @@
-// Test if scripts work
-const test = document.querySelector("header");
-const testText = document.createElement("div");
-// End test - delete after finishing project
-
 // Color Arrays
 const $colPuns = {
   cornflowerblue: "Cornflower Blue (JS Puns shirt only)",
@@ -34,6 +29,16 @@ const $activities = [
 const $themeMessage = $(
   `<div class="theme_message">Please select a T-shirt theme</div>`
 );
+
+// Validation variables
+const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; // emailregex.com
+let valText;
+const valErrLett = "Card Numer must only contain digits";
+const valErrNrLength1 = "Card Numer must contain at least 13 digits";
+const valErrNrLength2 = "Card Numer must not contain more than 16 digits";
+const valErrGen = "Card Numer must contain between 13 and 16 digits";
+const valErrDigit = "No numbers are allowed";
+const valErrGenName = "Please enter a valid name";
 
 // Helper functions
 // Find indices in $activities object
@@ -86,7 +91,7 @@ $("#design").change(() => {
         `<option value="` + key + `">` + $colIlov[key] + `</option>`
       );
     }
-    // Show all if Select Theme is selected
+    // Show Message if Select Theme is selected
   } else {
     $("#colors-js-puns").hide();
     $themeMessage.fadeIn(500);
@@ -100,10 +105,14 @@ $("#design").change(() => {
 
 // Activate and deactivate Activities
 $(".activities input").on("click", function() {
+  // Get attribute 'name' from clicked element
   const nametest = $(this)[0].name;
+  // Find time value for object with this type/name
   let obj = $activities.find(obj => obj.type == nametest).time;
+  // Find indices for objects with same time value
   let react = findWithAttr($activities, "time", obj);
 
+  // Set disabled and grey if checked except the clicked element
   for (let i = 0; i < react.length; i++) {
     let index = react[i];
     if ($(this)[0].checked) {
@@ -115,6 +124,7 @@ $(".activities input").on("click", function() {
         .attr("disabled", true);
       $(this)[0].removeAttribute("disabled");
       $(this)[0].parentElement.style.color = "black";
+      // enable and black if unchecked
     } else {
       $(".activities input")
         .eq(index)
@@ -128,17 +138,18 @@ $(".activities input").on("click", function() {
 
 // Calculate total
 $(".activities input").on("click", function() {
+  // find all checked
   $actChecked = $(".activities input:checked");
+  // Get amount
   const regex = /\d{3}/;
-
   sum = 0;
 
-  console.log(sum);
-
+  // Calculate total
   for (let i = 0; i < $actChecked.length; i++) {
     sum += parseInt(regex.exec($actChecked[i].parentElement.innerHTML));
   }
 
+  // Show, Hide amount if <> 0
   let $total = $(`<div class="total">$ ${sum}</div>`);
 
   if (sum > 0) {
@@ -151,7 +162,7 @@ $(".activities input").on("click", function() {
 
 // Remove Select Payment Method and default select credit card
 $('#payment option[value="select_method"]').remove();
-$('#color option[value="credit card"]').attr("selected", true);
+$('#payment option[value="credit card"]').attr("selected", true);
 
 // Hide elements, show elements depending on the payment option
 $("#payment").change(() => {
@@ -178,5 +189,126 @@ $("#payment").change(() => {
       .eq(1)
       .show();
     $('#payment option[value="bitcoin"]').attr("selected", true);
+  }
+});
+
+// Validation and Messages
+// Add field CSS and Message
+let valCSS = (val, valText) => {
+  $(val).addClass("checkBorder");
+  $(val)
+    .prev("label")
+    .addClass("checkLabel");
+
+  // If message exists add message, special case #cc-num
+  // because of multiple credit card input fields
+  if (val === "#cc-num") {
+    $(`<p>${valText}</p>`)
+      .addClass("checkMessage")
+      .insertAfter($("#cvv").parent());
+  } else if (valText !== "") {
+    $(`<p>${valText}</p>`)
+      .addClass("checkMessage")
+      .insertAfter(val);
+  }
+  // If empty only color changes
+};
+
+// Remove field CSS and Message
+let remCSS = val => {
+  $(val).removeClass("checkBorder");
+  $(val)
+    .prev("label")
+    .removeClass("checkLabel");
+
+  if (val === "#cc-num") {
+    $("#cvv")
+      .parent()
+      .next("p")
+      .remove();
+  } else {
+    $(val)
+      .next("p")
+      .remove();
+  }
+};
+
+// Name field validation
+let valName = () => {
+  remCSS("#name");
+  if ($("#name").val() === "") {
+    valCSS("#name", valErrGenName);
+    // message if digits are used
+  } else if (/[0-9]/gi.test($("#name").val())) {
+    valCSS("#name", valErrDigit);
+  }
+};
+
+// Mail field validation
+function valMail() {
+  remCSS("#mail");
+  valText = "";
+  if (!mailRegex.test($("#mail").val())) {
+    valCSS("#mail", "");
+  }
+}
+
+function valAct() {
+  $(".activities legend").removeClass("checkLabel");
+  if ($(".activities input:checked").length === 0) {
+    $(".activities legend").addClass("checkLabel");
+  }
+}
+
+function valCred() {
+  // Set different regexes
+  let testRegexes = [/^\d{13,16}$/, /^\d{5}$/, /^\d{3}$/];
+  // Get all credit card fields
+  let $testFields = $("#credit-card input");
+
+  $testFields.each((index, element) => {
+    // Set field id
+    let temp = "#" + $testFields.eq(index).attr("id");
+    // remove all styles
+    remCSS(temp);
+    // Only apply if credit card is payment option
+    if ($("#credit-card").css("display") !== "none") {
+      valText = "";
+      // Check fields
+      if (!testRegexes[index].test(element.value)) {
+        // Conditional error messages for #cc-num
+        if (temp === "#cc-num") {
+          if (/[a-z]/gi.test(element.value)) {
+            valText = valErrLett;
+          } else if (/^\d{1,12}$/.test(element.value)) {
+            valText = valErrNrLength1;
+          } else if (/^\d{17,}/.test(element.value)) {
+            valText = valErrNrLength2;
+          } else {
+            valText = valErrGen;
+          }
+        }
+        // Apply styles and message if any
+        valCSS(temp, valText);
+      }
+    }
+  });
+}
+
+// Add Real-Time Validation as soon as focused once
+$("#credit-card input").on("focus keypress keydown keyup", function() {
+  valCred();
+});
+
+// Submit after checks
+$("button").click(e => {
+  valName();
+  valMail();
+  valAct();
+  valCred();
+
+  // Only submit if no error styles applied
+  if (($(".checkLabel").length !== 0) | ($(".checkBorder").length !== 0)) {
+    event.preventDefault();
   }
 });

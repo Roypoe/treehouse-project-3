@@ -138,6 +138,24 @@ button:hover {
 .theme_message {
   margin-top: 29px;
 }
+
+/* =================================
+  Validation Classes
+==================================== */
+
+.checkBorder {
+  border: 2px solid red;
+}
+
+.checkLabel {
+  color: red;
+}
+
+.checkMessage {
+  color: red;
+  margin-top: 0;
+}
+
 /* =================================
   Helper Classes
 ==================================== */
