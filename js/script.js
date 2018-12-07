@@ -58,6 +58,14 @@ $(window).on("load", () => {
   $("#other-title").hide();
   $("#colors-js-puns").hide();
   $themeMessage.insertAfter("#colors-js-puns");
+  $("#credit-card")
+    .nextAll()
+    .eq(0)
+    .hide();
+  $("#credit-card")
+    .nextAll()
+    .eq(1)
+    .hide();
 });
 
 // Display and Hide the Job Role Text field
